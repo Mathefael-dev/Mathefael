@@ -373,6 +373,7 @@ const FinalCTA = () => {
 
 const Contact = () => {
   const [formState, setFormState] = useState<'idle' | 'sending' | 'success'>('idle');
+  const [mailtoUrl, setMailtoUrl] = useState('');
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -387,11 +388,11 @@ const Contact = () => {
     const subject = `New Project: ${type} from ${name}`;
     const body = `Name: ${name}\nEmail: ${email}\nProject Type: ${type}\n\nMessage:\n${message}`;
     
-    const mailtoUrl = `mailto:mathefael@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const url = `mailto:mathefael@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setMailtoUrl(url);
     
-    // Using setTimeout to give a "processing" feel before opening email client
+    // Using setTimeout to give a "processing" feel
     setTimeout(() => {
-      window.location.href = mailtoUrl;
       setFormState('success');
     }, 1000);
   };
@@ -422,19 +423,27 @@ const Contact = () => {
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center text-center h-full py-20"
+                className="flex flex-col items-center justify-center text-center h-full py-20 px-6"
               >
-                 <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 mb-6">
+                 <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center text-accent mb-6">
                     <CheckCircle2 className="w-10 h-10" />
                  </div>
-                 <h3 className="text-3xl font-bold mb-4 italic">Message Sent!</h3>
-                 <p className="text-white/60 mb-8 max-w-xs mx-auto">Thank you for reaching out. We'll get back to you within 24 hours to discuss your project.</p>
-                 <button 
-                  onClick={() => setFormState('idle')} 
-                  className="btn-outline border-white/10 hover:border-white/20"
-                >
-                  Send Another Message
-                </button>
+                 <h3 className="text-3xl font-bold mb-4 italic">Almost There!</h3>
+                 <p className="text-white/60 mb-8 max-w-xs mx-auto text-sm">To ensure your message is sent securely, please click the button below to launch your email app with your project details ready to send.</p>
+                 <div className="flex flex-col gap-4 w-full max-w-xs">
+                   <a 
+                    href={mailtoUrl}
+                    className="btn-primary py-4 text-center flex items-center justify-center gap-2"
+                   >
+                    Open Email Application <ExternalLink className="w-4 h-4" />
+                   </a>
+                   <button 
+                    onClick={() => setFormState('idle')} 
+                    className="text-white/30 hover:text-white transition-all text-xs font-bold uppercase tracking-widest py-2"
+                  >
+                    Send Another Message
+                  </button>
+                 </div>
               </motion.div>
             ) : (
               <form className="space-y-6" onSubmit={handleSubmit}>
