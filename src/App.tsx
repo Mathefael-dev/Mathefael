@@ -362,33 +362,54 @@ const FinalCTA = () => {
 
 const Contact = () => {
   const [formState, setFormState] = useState<'idle' | 'sending' | 'success'>('idle');
-  const [mailtoUrl, setMailtoUrl] = useState('');
-  const [gmailUrl, setGmailUrl] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormState('sending');
     
     const formData = new FormData(e.currentTarget);
-    const name = formData.get('userName');
-    const email = formData.get('userEmail');
-    const type = formData.get('projectType');
-    const message = formData.get('userMessage');
+    const payload = {
+      name: formData.get('userName'),
+      email: formData.get('userEmail'),
+      type: formData.get('projectType'),
+      message: formData.get('userMessage'),
+    };
     
-    const subject = `New Project: ${type} from ${name}`;
-    const body = `Name: ${name}\nEmail: ${email}\nProject Type: ${type}\n\nMessage:\n${message}`;
-    
-    const mailto = `mailto:mathefael@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    const gmail = `https://mail.google.com/mail/?view=cm&fs=1&to=mathefael@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
-    setMailtoUrl(mailto);
-    setGmailUrl(gmail);
-    
-    // Using setTimeout to give a "processing" feel
-    setTimeout(() => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to send';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If not JSON, use default error
+        }
+        throw new Error(errorMessage);
+      }
+
       setFormState('success');
-    }, 1000);
+    } catch (error: any) {
+      console.error('Submission error:', error);
+      const message = error.name === 'AbortError' 
+        ? 'Request timed out. Please check your connection or try again.'
+        : (error.message || 'Something went wrong. Please try again.');
+      
+      alert(message);
+      setFormState('idle');
+    }
   };
 
   const copyEmail = () => {
@@ -428,38 +449,15 @@ const Contact = () => {
                  <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center text-accent mb-6">
                     <CheckCircle2 className="w-10 h-10" />
                  </div>
-                 <h3 className="text-3xl font-bold mb-4 italic">Choose Your App</h3>
-                 <p className="text-white/60 mb-8 max-w-xs mx-auto text-sm">Your project details are ready! Select how you'd like to send them to us:</p>
+                 <h3 className="text-3xl font-bold mb-4 italic">Message Sent!</h3>
+                 <p className="text-white/60 mb-8 max-w-xs mx-auto text-sm">Thank you for reaching out. We have received your project details and will get back to you within 24 hours.</p>
                  
                  <div className="flex flex-col gap-3 w-full max-w-xs">
-                   <a 
-                    href={mailtoUrl}
-                    className="btn-primary py-4 text-center flex items-center justify-center gap-2"
-                   >
-                    Default Mail App <ExternalLink className="w-4 h-4" />
-                   </a>
-                   
-                   <a 
-                    href={gmailUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-outline py-4 text-center flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all"
-                   >
-                    Open in Gmail (Web) <Mail className="w-4 h-4" />
-                   </a>
-
-                   <button 
-                    onClick={copyEmail}
-                    className="btn-outline border-white/10 py-4 text-center flex items-center justify-center gap-2"
-                   >
-                    {copied ? 'Email Copied!' : 'Copy Email Address'} <Copy className="w-4 h-4" />
-                   </button>
-                   
                    <button 
                     onClick={() => setFormState('idle')} 
-                    className="text-white/30 hover:text-white transition-all text-xs font-bold uppercase tracking-widest mt-4 py-2"
+                    className="btn-primary py-4 text-center flex items-center justify-center gap-2"
                   >
-                    ← Back to Form
+                    Send Another Message
                   </button>
                  </div>
               </motion.div>
