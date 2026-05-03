@@ -12,7 +12,8 @@ import {
   ExternalLink,
   ShieldCheck,
   Zap,
-  Clock
+  Clock,
+  Copy
 } from "lucide-react";
 import { useState, useRef, FormEvent } from "react";
 
@@ -178,7 +179,7 @@ const FeaturedProject = () => {
             <div className="space-y-8 mb-10">
               <div>
                 <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2">The Goal</p>
-                <p className="text-lg text-white/80">Create a modern, attractive website for an artisanal pizza business that looks as good as the food tastes.</p>
+                <p className="text-lg text-white/80">Create a modern, attractive website that commands attention and reflects premium quality in every detail.</p>
               </div>
               <div>
                 <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2">The Focus</p>
@@ -211,18 +212,6 @@ const FeaturedProject = () => {
                 alt="Breane Pizza Mockup" 
                 className="w-full h-full object-cover grayscale-0 group-hover:scale-105 transition-transform duration-1000"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-8">
-                 <div>
-                   <p className="text-white/60 mb-2">Artisanal Pizza Business</p>
-                   <h3 className="text-2xl font-bold">Premium Order Experience</h3>
-                 </div>
-              </div>
-              {/* Floating tech stack */}
-              <div className="absolute top-6 right-6 flex flex-col gap-2">
-                {['React', 'Tailwind', 'Motion'].map(tech => (
-                  <span key={tech} className="bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest">{tech}</span>
-                ))}
-              </div>
             </div>
             
             {/* Conversion card pop-up */}
@@ -374,6 +363,8 @@ const FinalCTA = () => {
 const Contact = () => {
   const [formState, setFormState] = useState<'idle' | 'sending' | 'success'>('idle');
   const [mailtoUrl, setMailtoUrl] = useState('');
+  const [gmailUrl, setGmailUrl] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -388,13 +379,22 @@ const Contact = () => {
     const subject = `New Project: ${type} from ${name}`;
     const body = `Name: ${name}\nEmail: ${email}\nProject Type: ${type}\n\nMessage:\n${message}`;
     
-    const url = `mailto:mathefael@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setMailtoUrl(url);
+    const mailto = `mailto:mathefael@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const gmail = `https://mail.google.com/mail/?view=cm&fs=1&to=mathefael@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    setMailtoUrl(mailto);
+    setGmailUrl(gmail);
     
     // Using setTimeout to give a "processing" feel
     setTimeout(() => {
       setFormState('success');
     }, 1000);
+  };
+
+  const copyEmail = () => {
+    navigator.clipboard.writeText('mathefael@gmail.com');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -406,9 +406,9 @@ const Contact = () => {
             <p className="text-lg text-white/50 mb-12">Whether you have a specific project in mind or just want to explore possibilities, we're here to help you lead.</p>
             
             <div className="space-y-8">
-              <div className="flex items-center gap-6 group cursor-pointer">
+              <div className="flex items-center gap-6 group cursor-pointer" onClick={copyEmail}>
                 <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-all">
-                  <Mail className="w-6 h-6" />
+                  {copied ? <CheckCircle2 className="w-6 h-6" /> : <Mail className="w-6 h-6" />}
                 </div>
                 <div>
                   <p className="text-xs text-white/40 font-bold uppercase tracking-widest mb-1">Contact Us</p>
@@ -428,20 +428,38 @@ const Contact = () => {
                  <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center text-accent mb-6">
                     <CheckCircle2 className="w-10 h-10" />
                  </div>
-                 <h3 className="text-3xl font-bold mb-4 italic">Almost There!</h3>
-                 <p className="text-white/60 mb-8 max-w-xs mx-auto text-sm">To ensure your message is sent securely, please click the button below to launch your email app with your project details ready to send.</p>
-                 <div className="flex flex-col gap-4 w-full max-w-xs">
+                 <h3 className="text-3xl font-bold mb-4 italic">Choose Your App</h3>
+                 <p className="text-white/60 mb-8 max-w-xs mx-auto text-sm">Your project details are ready! Select how you'd like to send them to us:</p>
+                 
+                 <div className="flex flex-col gap-3 w-full max-w-xs">
                    <a 
                     href={mailtoUrl}
                     className="btn-primary py-4 text-center flex items-center justify-center gap-2"
                    >
-                    Open Email Application <ExternalLink className="w-4 h-4" />
+                    Default Mail App <ExternalLink className="w-4 h-4" />
                    </a>
+                   
+                   <a 
+                    href={gmailUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-outline py-4 text-center flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-all"
+                   >
+                    Open in Gmail (Web) <Mail className="w-4 h-4" />
+                   </a>
+
+                   <button 
+                    onClick={copyEmail}
+                    className="btn-outline border-white/10 py-4 text-center flex items-center justify-center gap-2"
+                   >
+                    {copied ? 'Email Copied!' : 'Copy Email Address'} <Copy className="w-4 h-4" />
+                   </button>
+                   
                    <button 
                     onClick={() => setFormState('idle')} 
-                    className="text-white/30 hover:text-white transition-all text-xs font-bold uppercase tracking-widest py-2"
+                    className="text-white/30 hover:text-white transition-all text-xs font-bold uppercase tracking-widest mt-4 py-2"
                   >
-                    Send Another Message
+                    ← Back to Form
                   </button>
                  </div>
               </motion.div>
@@ -477,7 +495,7 @@ const Contact = () => {
                   {formState === 'sending' ? (
                     <>
                       <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                      Opening Mail Client...
+                      Sending...
                     </>
                   ) : (
                     <>Send Project Details <ArrowRight className="w-4 h-4" /></>
