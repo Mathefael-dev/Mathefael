@@ -14,7 +14,7 @@ import {
   Zap,
   Clock
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, FormEvent } from "react";
 
 // --- Components ---
 
@@ -161,7 +161,7 @@ const Services = () => {
     {
       icon: <Smartphone className="w-6 h-6" />,
       title: "Portfolio Websites",
-      description: "Showcase your work in a way that commands attention. Tailored designs that reflect your unique creative brand.",
+      description: "Showcase your work in a way that commands attention. Tailored designs that reflect your creative brand.",
       result: "High-value client inquiries"
     },
     {
@@ -330,7 +330,7 @@ const WhyUs = () => {
                   <div>
                     <p className="text-xs text-white/50 font-bold uppercase tracking-widest mb-1">Project Performance</p>
                     <span className="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded">Active</span>
-                 </div>
+                  </div>
                  <div className="w-full h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
@@ -394,7 +394,6 @@ const Process = () => {
   );
 };
 
-
 const FinalCTA = () => {
   return (
     <section className="py-32 relative overflow-hidden">
@@ -418,6 +417,30 @@ const FinalCTA = () => {
 };
 
 const Contact = () => {
+  const [formState, setFormState] = useState<'idle' | 'sending' | 'success'>('idle');
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFormState('sending');
+    
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('userName');
+    const email = formData.get('userEmail');
+    const type = formData.get('projectType');
+    const message = formData.get('userMessage');
+    
+    const subject = `New Project: ${type} from ${name}`;
+    const body = `Name: ${name}\nEmail: ${email}\nProject Type: ${type}\n\nMessage:\n${message}`;
+    
+    const mailtoUrl = `mailto:mathefael@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    // Using setTimeout to give a "processing" feel before opening email client
+    setTimeout(() => {
+      window.location.href = mailtoUrl;
+      setFormState('success');
+    }, 1000);
+  };
+
   return (
     <section id="contact" className="py-32 bg-primary">
       <div className="max-w-7xl mx-auto px-6">
@@ -439,35 +462,65 @@ const Contact = () => {
             </div>
           </div>
           
-          <div className="glass-card">
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-xs font-bold text-white/40 uppercase mb-2 block tracking-widest">Your Name</label>
-                  <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-accent" placeholder="John Doe" />
+          <div className="glass-card overflow-hidden">
+            {formState === 'success' ? (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center text-center h-full py-20"
+              >
+                 <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 mb-6">
+                    <CheckCircle2 className="w-10 h-10" />
+                 </div>
+                 <h3 className="text-3xl font-bold mb-4 italic">Message Sent!</h3>
+                 <p className="text-white/60 mb-8 max-w-xs mx-auto">Thank you for reaching out. We'll get back to you within 24 hours to discuss your project.</p>
+                 <button 
+                  onClick={() => setFormState('idle')} 
+                  className="btn-outline border-white/10 hover:border-white/20"
+                >
+                  Send Another Message
+                </button>
+              </motion.div>
+            ) : (
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-xs font-bold text-white/40 uppercase mb-2 block tracking-widest">Your Name</label>
+                    <input required name="userName" type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-accent" placeholder="John Doe" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-white/40 uppercase mb-2 block tracking-widest">Email Address</label>
+                    <input required name="userEmail" type="email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-accent" placeholder="john@example.com" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-white/40 uppercase mb-2 block tracking-widest">Email Address</label>
-                  <input type="email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-accent" placeholder="john@example.com" />
+                  <label className="text-xs font-bold text-white/40 uppercase mb-2 block tracking-widest">Project Type</label>
+                  <select name="projectType" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-accent appearance-none">
+                    <option value="" className="bg-zinc-900 border-none">Select Type</option>
+                    <option value="Website Development" className="bg-zinc-900">Website Development</option>
+                    <option value="Landing Page" className="bg-zinc-900">Landing Page</option>
+                    <option value="Portfolio Site" className="bg-zinc-900">Portfolio Site</option>
+                  </select>
                 </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-white/40 uppercase mb-2 block tracking-widest">Project Type</label>
-                <select className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-accent appearance-none">
-                  <option className="bg-zinc-900 border-none">Select Type</option>
-                  <option className="bg-zinc-900">Website Development</option>
-                  <option className="bg-zinc-900">Landing Page</option>
-                  <option className="bg-zinc-900">Portfolio Site</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-white/40 uppercase mb-2 block tracking-widest">Message</label>
-                <textarea rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-accent" placeholder="Tell us about your project..."></textarea>
-              </div>
-              <button className="w-full btn-primary py-5">
-                Send Project Inquiry
-              </button>
-            </form>
+                <div>
+                  <label className="text-xs font-bold text-white/40 uppercase mb-2 block tracking-widest">Message</label>
+                  <textarea required name="userMessage" rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-accent" placeholder="Tell us about your project..."></textarea>
+                </div>
+                <button 
+                  disabled={formState === 'sending'}
+                  className="w-full btn-primary py-5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {formState === 'sending' ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                      Opening Mail Client...
+                    </>
+                  ) : (
+                    <>Send Project Details <ArrowRight className="w-4 h-4" /></>
+                  )}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>
